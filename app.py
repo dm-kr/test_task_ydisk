@@ -2,6 +2,9 @@ from flask import Flask, render_template, send_file, Response
 
 app: Flask = Flask(__name__)
 
+info_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources'
+download_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources/download'
+
 
 @app.route('/')
 def index() -> str:
