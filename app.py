@@ -1,20 +1,20 @@
-from flask import Flask, render_template, send_file
+from flask import Flask, render_template, send_file, Response
 
-app = Flask(__name__)
+app: Flask = Flask(__name__)
 
 
 @app.route('/')
-def index():
+def index() -> str:
     return render_template('index.html')
 
 
 @app.route('folder')
-def folder():
+def folder() -> str:
     return render_template('folder.html')
 
 
 @app.route('download')
-def download():
+def download() -> Response:
     return send_file()
 
 
