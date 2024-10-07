@@ -88,7 +88,7 @@ def folder() -> str:
     return render_template('folder.html', **context)
 
 
-@app.route('/download')
+@app.route('/download', methods=['POST'])
 @need_login
 def download() -> Response:
     paths: list = request.form.getlist('selected_files')
