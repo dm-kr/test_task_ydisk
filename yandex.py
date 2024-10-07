@@ -22,6 +22,8 @@ def get_files_list(public_key: str, path: str) -> list:
     if response.status_code != 200:
         return []
     files_list: list = response.json().get('_embedded').get('items')
+    if not files_list:
+        files_list = [{'type': 'nofile'}]
     return files_list
 
 
