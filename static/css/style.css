@@ -1,0 +1,15 @@
+.block {
+    margin-bottom: 10px;
+}
+
+.block img {
+    width: 14px;
+}
+
+#dropdown {
+    margin-bottom: 10px; 
+}
+
+#file-list li {
+    list-style-type: none;
+}
