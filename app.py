@@ -1,10 +1,13 @@
 from flask import Flask, Response, redirect, render_template, send_file, url_for, request, session
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
+from io import BytesIO
 import os
+import requests
+import zipfile
 
 from decorators import need_login
-from yandex import get_files_list
+from yandex import get_files_list, get_download_links
 
 load_dotenv()
 
@@ -23,8 +26,6 @@ oauth.register(
     userinfo_endpoint='https://login.yandex.ru/info',
     client_kwargs={'scope': 'login:email login:info'},
 )
-
-download_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources/download'
 
 
 @app.route('/')
@@ -90,7 +91,35 @@ def folder() -> str:
 @app.route('/download')
 @need_login
 def download() -> Response:
-    return send_file()
+    paths: list = request.form.getlist('selected_files')
+    if len(paths) < 1:
+        return "Выберите хотя бы один файл", 400
+    file_urls: list = get_download_links(paths)
+    if not file_urls:
+        return "Ошибка при получении загрузочной ссылки", 500
+    if len(file_urls) == 1:
+        buffer: BytesIO = BytesIO(requests.get(file_urls[0]).content)
+        return send_file(buffer, as_attachment=True, download_name=paths[0].split('/')[-1])
+
+    zip_buffer: BytesIO = BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        for i in range(len(file_urls)):
+            response: requests.Response = requests.get(file_urls[i])
+            if response.status_code == 200:
+                file_name: str = paths[i].split('/')[-1]
+                zip_file.writestr(file_name, response.content)
+            else:
+                return f"Ошибка при скачивании файла: {file_urls[i]}", 500
+
+    zip_buffer.seek(0)
+
+    return send_file(
+        zip_buffer,
+        as_attachment=True,
+        download_name='files.zip',
+        mimetype='application/zip'
+    )
 
 
 if __name__ == '__main__':
