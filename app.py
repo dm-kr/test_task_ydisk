@@ -58,26 +58,26 @@ def logout() -> Response:
 @app.route('/folder')
 @need_login
 def folder() -> str:
-    public_key = request.args.get('public_key')
+    public_key: str = request.args.get('public_key')
     if not public_key:
         return "Публичная ссылка не указана", 400
-    path = request.args.get('path')
-    files_list = get_files_list(public_key, path)
+    path: str = request.args.get('path')
+    files_list: list = get_files_list(public_key, path)
     if not files_list:
         return "Ошибка при получении списка файлов", 500
-    filetypes = [
+    filetypes: list = [
         {'id': 'all', 'name': 'Все файлы'},
         {'id': 'dir', 'name': 'Папки'},
         {'id': 'document', 'name': 'Документы'},
         {'id': 'image', 'name': 'Картинки'},
     ]
-    filetype = request.args.get('filetype')
+    filetype: str = request.args.get('filetype')
     if filetype and filetype != 'all':
         files_list = list(filter(
             lambda file: file.get('media_type', 'dir') == filetype, files_list))
-    current_path = request.args.get('path', '').split('/')
-    previous_folder = f'/{'/'.join(current_path[1:-1])}'
-    context = {
+    current_path: str = request.args.get('path', '').split('/')
+    previous_folder: str = f'/{'/'.join(current_path[1:-1])}'
+    context: dict = {
         'files': files_list,
         'public_key': public_key,
         'back_link_path': previous_folder if any(current_path) else None,
