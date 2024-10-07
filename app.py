@@ -1,9 +1,10 @@
-from flask import Flask, Response, redirect, render_template, send_file, url_for, session
+from flask import Flask, Response, redirect, render_template, send_file, url_for, request, session
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 import os
 
 from decorators import need_login
+from yandex import get_files_list
 
 load_dotenv()
 
@@ -23,7 +24,6 @@ oauth.register(
     client_kwargs={'scope': 'login:email login:info'},
 )
 
-info_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources'
 download_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources/download'
 
 
@@ -58,7 +58,33 @@ def logout() -> Response:
 @app.route('/folder')
 @need_login
 def folder() -> str:
-    return render_template('folder.html')
+    public_key = request.args.get('public_key')
+    if not public_key:
+        return "Публичная ссылка не указана", 400
+    path = request.args.get('path')
+    files_list = get_files_list(public_key, path)
+    if not files_list:
+        return "Ошибка при получении списка файлов", 500
+    filetypes = [
+        {'id': 'all', 'name': 'Все файлы'},
+        {'id': 'dir', 'name': 'Папки'},
+        {'id': 'document', 'name': 'Документы'},
+        {'id': 'image', 'name': 'Картинки'},
+    ]
+    filetype = request.args.get('filetype')
+    if filetype and filetype != 'all':
+        files_list = list(filter(
+            lambda file: file.get('media_type', 'dir') == filetype, files_list))
+    current_path = request.args.get('path', '').split('/')
+    previous_folder = f'/{'/'.join(current_path[1:-1])}'
+    context = {
+        'files': files_list,
+        'public_key': public_key,
+        'back_link_path': previous_folder if any(current_path) else None,
+        'filetypes': filetypes,
+        'selected_filetype': filetype,
+    }
+    return render_template('folder.html', **context)
 
 
 @app.route('/download')
