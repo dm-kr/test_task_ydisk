@@ -30,7 +30,7 @@
                                 <img src="../static/img/folder.png"></img>
                                 <a class="folderOpener" href="|{{ file.public_key }}|{{ file.path }}">{{ file.name }}</a>
                             </div>
-                        {% else %}
+                        {% elif file.type != "nofile" %}
                             <input id="{{ file.path }}" type="checkbox" name="selected_files" value="{{ file.path }}">
                             <label for="{{ file.path }}">{{ file.name }}</label>
                         {% endif %}
