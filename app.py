@@ -2,6 +2,7 @@ from flask import Flask, Response, redirect, render_template, send_file, url_for
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from io import BytesIO
+from typing import List, Dict, Any
 import os
 import requests
 import zipfile
@@ -44,7 +45,8 @@ def login() -> None:
 def authorize() -> Response:
     token: str = oauth.yandex.authorize_access_token()
     session['yandex_token'] = token
-    user_info: dict = oauth.yandex.get('https://login.yandex.ru/info').json()
+    user_info: Dict[str, Any] = oauth.yandex.get(
+        'https://login.yandex.ru/info').json()
     session['user_info'] = user_info
     return redirect(url_for('index'))
 
@@ -63,10 +65,10 @@ def folder() -> str:
     if not public_key:
         return "Публичная ссылка не указана", 400
     path: str = request.args.get('path')
-    files_list: list = get_files_list(public_key, path)
+    files_list: List[Dict[str, Any]] = get_files_list(public_key, path)
     if not files_list:
         return "Ошибка при получении списка файлов", 500
-    filetypes: list = [
+    filetypes: List[Dict[str, str]] = [
         {'id': 'all', 'name': 'Все файлы'},
         {'id': 'dir', 'name': 'Папки'},
         {'id': 'document', 'name': 'Документы'},
@@ -78,7 +80,7 @@ def folder() -> str:
             lambda file: file.get('media_type', 'dir') == filetype, files_list))
     current_path: str = request.args.get('path', '').split('/')
     previous_folder: str = f'/{'/'.join(current_path[1:-1])}'
-    context: dict = {
+    context: Dict[str, List | str] = {
         'files': files_list,
         'public_key': public_key,
         'back_link_path': previous_folder if any(current_path) else None,
@@ -91,10 +93,10 @@ def folder() -> str:
 @app.route('/download', methods=['POST'])
 @need_login
 def download() -> Response:
-    paths: list = request.form.getlist('selected_files')
+    paths: List[str] = request.form.getlist('selected_files')
     if len(paths) < 1:
         return "Выберите хотя бы один файл", 400
-    file_urls: list = get_download_links(paths)
+    file_urls: List[str] = get_download_links(paths)
     if not file_urls:
         return "Ошибка при получении загрузочной ссылки", 500
     if len(file_urls) == 1:

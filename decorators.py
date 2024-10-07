@@ -1,6 +1,6 @@
 from flask import render_template, session
 from functools import wraps
-from typing import Callable, Any
+from typing import Callable, Dict, List, Any
 import threading
 
 
@@ -16,14 +16,14 @@ def need_login(f: Callable[..., Any]) -> Callable[..., Any]:
 
 def cache(time: int = 60) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
-        cache: dict = {}
+        cache: Dict[str, Any] = {}
 
         @wraps(f)
         def wrapper(*args: str, **kwargs: Any) -> Any:
             key: str = '-'.join([arg for arg in args if arg])
             if key in cache:
                 return cache[key]
-            data: list = f(*args, **kwargs)
+            data: List[Any] = f(*args, **kwargs)
             cache[key] = data
 
             def delete_cache():
