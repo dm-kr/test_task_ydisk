@@ -2,12 +2,65 @@
 <html lang="ru">
 <head>
     <meta charset="utf-8">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/style.css" rel="stylesheet">
     <title>Просмотр файлов</title>
 </head>
 <body>
-    <h1>Список файлов</h1>
-    <form action="download" method="post">
-        <button type="submit">Скачать</button>
-    </form>
+    <div class="container mt-5">
+        <h1>Список файлов</h1>
+        <select id="dropdown" name="dropdown" onchange="updateList()">
+            {% for filetype in filetypes %}
+                <option value="{{ filetype.id }}" {% if filetype.id == selected_filetype %}selected{% endif %}>{{ filetype.name }}</option>
+            {% endfor %}
+        </select>
+        {% if back_link_path %}
+            <div class="block">
+                <img src="../static/img/folder.png"></img>
+                <a class="folderOpener" href="|{{ public_key }}|{{ back_link_path }}">..</a>
+            </div>
+        {% endif %}
+        <form action="/download" method="post">
+            <input type="hidden" name="public_key" value="{{ public_key }}">
+            <ul id="file-list" class="list-group">
+                {% for file in files %}
+                    <li>
+                        {% if file.type == "dir" %}
+                            <div class="block">
+                                <img src="../static/img/folder.png"></img>
+                                <a class="folderOpener" href="|{{ file.public_key }}|{{ file.path }}">{{ file.name }}</a>
+                            </div>
+                        {% else %}
+                            <input id="{{ file.path }}" type="checkbox" name="selected_files" value="{{ file.path }}">
+                            <label for="{{ file.path }}">{{ file.name }}</label>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+            <button type="submit">Скачать</button>
+        </form>
+    </div>
+    <div class="container mt-5">
+        <a href="/">Вернуться на главную</a>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let links = document.querySelectorAll('.folderOpener')
+        links.forEach(link => {
+            let params = link.href.split('|');
+            link.href = '/folder?public_key=' + encodeURIComponent(params[1]) + '&path=' + encodeURIComponent(params[2]);
+        });
+    
+        function updateList() {
+            var selectedOption = document.getElementById('dropdown').value;
+            if (selectedOption) {
+                const params = new URLSearchParams(window.location.search);
+                const path = params.get('path') ? '&path=' + params.get('path') : '';
+                window.location.href = '/folder?public_key=' + encodeURIComponent(params.get('public_key')) + path + '&filetype=' + selectedOption;
+            }
+        }
+    </script>
 </body>
 </html>
