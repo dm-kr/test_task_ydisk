@@ -3,6 +3,8 @@ from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 import os
 
+from decorators import need_login
+
 load_dotenv()
 
 app: Flask = Flask(__name__)
@@ -26,6 +28,7 @@ download_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources/downl
 
 
 @app.route('/')
+@need_login
 def index() -> str:
     return render_template('index.html')
 
@@ -53,11 +56,13 @@ def logout() -> Response:
 
 
 @app.route('/folder')
+@need_login
 def folder() -> str:
     return render_template('folder.html')
 
 
 @app.route('/download')
+@need_login
 def download() -> Response:
     return send_file()
 
