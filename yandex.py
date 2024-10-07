@@ -1,10 +1,13 @@
 from flask import request, session
 import requests
 
+from decorators import cache
+
 info_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources'
 download_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources/download'
 
 
+@cache(time=30)
 def get_files_list(public_key: str, path: str) -> list:
     headers: dict = {
         'Accept': 'application/json',
@@ -22,6 +25,7 @@ def get_files_list(public_key: str, path: str) -> list:
     return files_list
 
 
+@cache(time=30)
 def get_download_link(path: str) -> list:
     public_key: str = request.form.get('public_key')
     response: requests.Response = requests.get(url=download_url, params={
