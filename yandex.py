@@ -10,6 +10,9 @@ download_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources/downl
 
 @cache(time=30)
 def get_files_list(public_key: str, path: str) -> List[Dict[str, Any]]:
+    """
+    Функция для получения информации о файлах в директории по публичному ключу
+    """
     headers: Dict[str, str] = {
         'Accept': 'application/json',
         'Authorization': f'OAuth {session.get('yandex_token')}'
@@ -31,6 +34,9 @@ def get_files_list(public_key: str, path: str) -> List[Dict[str, Any]]:
 
 @cache(time=30)
 def get_download_link(path: str) -> str:
+    """
+    Функция для получения ссылки на загрузку файла по полученному пути
+    """
     public_key: str = request.form.get('public_key')
     response: requests.Response = requests.get(url=download_url, params={
         'public_key': public_key,
@@ -42,6 +48,9 @@ def get_download_link(path: str) -> str:
 
 
 def get_download_links(paths: str) -> List[str]:
+    """
+    Функция для получения ссылок на загрузку файлов по полученному списку путей к этим файлам
+    """
     file_urls: List[str] = []
 
     for path in paths:

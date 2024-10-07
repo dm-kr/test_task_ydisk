@@ -5,6 +5,9 @@ import threading
 
 
 def need_login(f: Callable[..., Any]) -> Callable[..., Any]:
+    """
+    Декоратор, требующий авторизацию через Яндекс для работы функции
+    """
     @wraps(f)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         if 'yandex_token' not in session:
@@ -15,6 +18,11 @@ def need_login(f: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def cache(time: int = 60) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """
+    Декоратор, кеширующий результат выполнения функции на указанное количество времени
+
+    time - время кеширования
+    """
     def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
         cache: Dict[str, Any] = {}
 

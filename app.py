@@ -26,23 +26,32 @@ oauth.register(
     access_token_url='https://oauth.yandex.ru/token',
     userinfo_endpoint='https://login.yandex.ru/info',
     client_kwargs={'scope': 'login:email login:info'},
-)
+)  # регистрация приложения Яндекс
 
 
 @app.route('/')
 @need_login
 def index() -> str:
+    """
+    Представление для отображения главной страницы
+    """
     return render_template('index.html')
 
 
 @app.route('/login')
 def login() -> None:
+    """
+    Представление для перенаправления пользователя на авторизацию
+    """
     redirect_uri: str = url_for('authorize', _external=True)
     return oauth.yandex.authorize_redirect(redirect_uri)
 
 
 @app.route('/authorize')
 def authorize() -> Response:
+    """
+    Представление для обработки авторизации
+    """
     token: str = oauth.yandex.authorize_access_token()
     session['yandex_token'] = token
     user_info: Dict[str, Any] = oauth.yandex.get(
@@ -53,6 +62,9 @@ def authorize() -> Response:
 
 @app.route('/logout')
 def logout() -> Response:
+    """
+    Представление для обработки деавторизации
+    """
     session.pop('yandex_token', None)
     session.pop('user_info', None)
     return redirect(url_for('index'))
@@ -61,6 +73,9 @@ def logout() -> Response:
 @app.route('/folder')
 @need_login
 def folder() -> str:
+    """
+    Представление для отображения списка файлов
+    """
     public_key: str = request.args.get('public_key')
     if not public_key:
         return "Публичная ссылка не указана", 400
@@ -93,6 +108,9 @@ def folder() -> str:
 @app.route('/download', methods=['POST'])
 @need_login
 def download() -> Response:
+    """
+    Представление для обработки скачивания файлов
+    """
     paths: List[str] = request.form.getlist('selected_files')
     if len(paths) < 1:
         return "Выберите хотя бы один файл", 400
