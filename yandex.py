@@ -5,7 +5,7 @@ info_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources'
 download_url: str = 'https://cloud-api.yandex.net/v1/disk/public/resources/download'
 
 
-def get_files_list(public_key: str, path: str):
+def get_files_list(public_key: str, path: str) -> list:
     headers: dict = {
         'Accept': 'application/json',
         'Authorization': f'OAuth {session.get('yandex_token')}'
@@ -22,7 +22,7 @@ def get_files_list(public_key: str, path: str):
     return files_list
 
 
-def get_download_link(path: str):
+def get_download_link(path: str) -> list:
     public_key: str = request.form.get('public_key')
     response: requests.Response = requests.get(url=download_url, params={
         'public_key': public_key,
@@ -33,7 +33,7 @@ def get_download_link(path: str):
     return response.json()['href']
 
 
-def get_download_links(paths: str):
+def get_download_links(paths: str) -> list:
     file_urls: list = []
 
     for path in paths:
