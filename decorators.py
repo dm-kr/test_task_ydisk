@@ -14,23 +14,26 @@ def need_login(f: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def cache(f: Callable[..., Any], time=60) -> Callable[..., Any]:
-    cache: dict = {}
+def cache(time: int = 60) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
+        cache: dict = {}
 
-    @wraps(f)
-    def wrapper(*args: str, **kwargs: Any) -> Any:
-        key: str = '-'.join([arg for arg in args if arg])
-        if key in cache:
-            return cache[key]
-        data: list = f(*args, **kwargs)
-        cache[key] = data
+        @wraps(f)
+        def wrapper(*args: str, **kwargs: Any) -> Any:
+            key: str = '-'.join([arg for arg in args if arg])
+            if key in cache:
+                return cache[key]
+            data: list = f(*args, **kwargs)
+            cache[key] = data
 
-        def delete_cache():
-            cache.pop(key)
+            def delete_cache():
+                cache.pop(key, None)
 
-        timer: threading.Timer = threading.Timer(time, delete_cache)
-        timer.start()
+            timer: threading.Timer = threading.Timer(time, delete_cache)
+            timer.start()
 
-        return data
+            return data
 
-    return wrapper
+        return wrapper
+
+    return decorator
